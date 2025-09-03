@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,7 +14,7 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 public class LoanApplication {
     Long idLoan;
-    Long loanAmount;
+    BigDecimal loanAmount;
     Long termInMonths;
     String documentNumber;
     Long loanType;

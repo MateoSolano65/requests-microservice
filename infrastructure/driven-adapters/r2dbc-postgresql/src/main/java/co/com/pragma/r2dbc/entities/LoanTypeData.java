@@ -14,24 +14,24 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table("application")
-public class LoanApplicationData {
+@Table("loan_type")
+public class LoanTypeData {
     @Id
-    @Column("id_application")
-    private Long idLoan;
-    
-    @Column("amount")
-    private BigDecimal loanAmount;
-    
-    @Column("term")
-    private Long termInMonths;
-    
-    @Column("document_number")
-    private String documentNumber;
-    
     @Column("id_loan_type")
-    private Long loanType;
+    private Long id;
     
-    @Column("id_state")
-    private Long loanStatus;
+    @Column("name")
+    private String name;
+    
+    @Column("min_amount")
+    private BigDecimal minAmount;
+    
+    @Column("max_amount")
+    private BigDecimal maxAmount;
+    
+    @Column("interest_rate")
+    private BigDecimal interestRate;
+    
+    @Column("automatic_validation")
+    private Boolean automaticValidation;
 }

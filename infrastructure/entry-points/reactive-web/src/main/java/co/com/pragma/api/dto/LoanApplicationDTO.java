@@ -2,6 +2,7 @@ package co.com.pragma.api.dto;
 
 import co.com.pragma.api.utils.Regex;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -25,10 +28,10 @@ public class LoanApplicationDTO {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Long idLoan;
     
-    @Schema(description = "Monto del préstamo en pesos", example = "5000000")
+    @Schema(description = "Monto del préstamo en pesos", example = "5000000.00")
     @NotNull(message = "El monto del préstamo es obligatorio")
-    @Min(value = 1, message = "El monto del préstamo debe ser mayor que cero")
-    private Long loanAmount;
+    @DecimalMin(value = "1.0", message = "El monto del préstamo debe ser mayor que cero")
+    private BigDecimal loanAmount;
     
     @Schema(description = "Plazo del préstamo en meses", example = "24")
     @NotNull(message = "El plazo del préstamo es obligatorio")
@@ -44,6 +47,6 @@ public class LoanApplicationDTO {
     @NotNull(message = "El tipo de préstamo es obligatorio")
     private Long loanType;
     
-    @Schema(description = "Estado del préstamo", example = "1")
+    @Schema(description = "Estado del préstamo", example = "1", hidden = true)
     private Long loanStatus;
 }

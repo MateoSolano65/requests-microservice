@@ -1,4 +1,4 @@
-package co.com.pragma.api;
+package co.com.pragma.api.handler;
 
 import co.com.pragma.api.dto.LoanApplicationDTO;
 import co.com.pragma.api.dto.ResponseApiDto;
@@ -45,7 +45,7 @@ public class RequestHandler {
     public Mono<ServerResponse> createLoanApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(LoanApplicationDTO.class)
                 .flatMap(validatorDTO::validate)
-                .map(loanApplicationMapper::toLoanApplication)
+                .flatMap(loanApplicationMapper::toLoanApplicationWithPendingStatus)
                 .flatMap(loanApplication -> {
                     final String dummyToken = "dummy-token"; 
                     return createLoanApplicationUseCase.createLoanApplication(dummyToken, loanApplication);

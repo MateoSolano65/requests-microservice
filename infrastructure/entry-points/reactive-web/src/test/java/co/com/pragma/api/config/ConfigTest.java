@@ -1,6 +1,6 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.RequestHandler;
+import co.com.pragma.api.handler.RequestHandler;
 import co.com.pragma.api.RequestRouterRest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

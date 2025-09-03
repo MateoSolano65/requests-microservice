@@ -1,9 +1,10 @@
-package co.com.pragma.r2dbc;
+package co.com.pragma.r2dbc.adapter;
 
 import co.com.pragma.model.loanapplication.LoanApplication;
 import co.com.pragma.model.loanapplication.gateways.LoanApplicationGateway;
 import co.com.pragma.r2dbc.entities.LoanApplicationData;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
+import co.com.pragma.r2dbc.repository.LoanApplicationRepository;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
