@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
     name: "requests-microservice"
@@ -11,6 +11,14 @@ spring:
       path: "/h2"
   profiles:
     include: null
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: 5432
+    database: "request"
+    schema: "public"
+    username: "postgres"
+    password: "admin123"
 management:
   endpoints:
     web:
