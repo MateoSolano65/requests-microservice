@@ -8,8 +8,9 @@ import java.util.Map;
 @Getter
 public enum ErrorType {
     
-    LOAND_APLICATION_NOT_ACTIVE(400, "BUSINESS-001", "El prestamo no está activo"),
-    LOAND_APLICATION_ALREADY_EXISTS(409, "CONFLICT-002", "El prestamo ya existe");
+    LOAND_APLICATION_NOT_ACTIVE(422, "BUSINESS-001", "El prestamo no está activo"),
+    LOAN_TYPE_NOT_FOUND(422, "BUSINESS-002", "El tipo de préstamo no existe"),
+    LOAND_APLICATION_ALREADY_EXISTS(422, "CONFLICT-002", "El prestamo ya existe");
     
     private final int statusCode;
     private final String errorCode;

@@ -7,25 +7,27 @@ import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import co.com.pragma.r2dbc.repository.LoanTypeRepository;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
 public class LoanTypeAdapter extends ReactiveAdapterOperations<LoanType, LoanTypeData, Long, LoanTypeRepository>
         implements LoanTypeGateway {
 
-    private final TransactionalOperator transactionalOperator;
 
-    public LoanTypeAdapter(LoanTypeRepository repository, ObjectMapper mapper, TransactionalOperator transactionalOperator) {
+    public LoanTypeAdapter(LoanTypeRepository repository, ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, LoanType.class));
-        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Flux<LoanType> getAllLoanTypes() {
         return repository.findAll()
-                .map(data -> mapper.map(data, LoanType.class))
-                .as(transactionalOperator::transactional);
+                .map(data -> mapper.map(data, LoanType.class));
+    }
+    
+    @Override
+    public Mono<Boolean> existById(Long id) {
+        return repository.existsById(id);
     }
 }
 

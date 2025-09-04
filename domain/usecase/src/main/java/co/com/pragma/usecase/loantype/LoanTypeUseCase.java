@@ -13,4 +13,8 @@ public class LoanTypeUseCase {
     public Flux<LoanType> getAllLoanTypes() {
         return loanTypeGateway.getAllLoanTypes();
     }
+    
+    public Mono<Boolean> validateLoanTypeExists(Long loanTypeId) {
+        return loanTypeGateway.existById(loanTypeId);
+    }
 }

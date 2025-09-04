@@ -7,4 +7,6 @@ import reactor.core.publisher.Mono;
 public interface LoanTypeGateway {
 
     Flux<LoanType> getAllLoanTypes();
+    
+    Mono<Boolean> existById(Long id);
 }
