@@ -10,18 +10,15 @@ import reactor.core.publisher.Mono;
 public class LoanStatusAdapter implements LoanStatusGateway {
 
     private final LoanStatusRepository repository;
-    private final TransactionalOperator transactionalOperator;
 
-    public LoanStatusAdapter(LoanStatusRepository repository, TransactionalOperator transactionalOperator) {
+    public LoanStatusAdapter(LoanStatusRepository repository) {
         this.repository = repository;
-        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<Long> getIdByName(String statusName) {
         return repository.findByName(statusName)
                 .map(loanStatusData -> loanStatusData.getId())
-                .switchIfEmpty(Mono.error(new RuntimeException("Estado no encontrado: " + statusName)))
-                .as(transactionalOperator::transactional);
+                .switchIfEmpty(Mono.error(new RuntimeException("Estado no encontrado: " + statusName)));
     }
 }

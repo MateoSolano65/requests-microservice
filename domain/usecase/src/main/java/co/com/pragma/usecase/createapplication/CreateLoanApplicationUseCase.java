@@ -16,7 +16,7 @@ public class CreateLoanApplicationUseCase {
     private final ClientValidationGateway clientValidationGateway;
     private final LoanTypeGateway loanTypeGateway;
 
-    public Mono<LoanApplication> createLoanApplication(String token, LoanApplication loanApplication) {
+    public Mono<LoanApplication> create(String token, LoanApplication loanApplication) {
         return clientValidationGateway.validateToken(token)
                 .flatMap(isValid -> {
                     if (Boolean.TRUE.equals(isValid)) {

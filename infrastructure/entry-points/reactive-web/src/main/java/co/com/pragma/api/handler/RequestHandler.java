@@ -48,7 +48,7 @@ public class RequestHandler {
                 .flatMap(loanApplicationMapper::toLoanApplicationWithPendingStatus)
                 .flatMap(loanApplication -> {
                     final String dummyToken = "dummy-token"; 
-                    return createLoanApplicationUseCase.createLoanApplication(dummyToken, loanApplication);
+                    return createLoanApplicationUseCase.create(dummyToken, loanApplication);
                 })
                 .map(loanApplicationMapper::toLoanApplicationDTO)
                 .flatMap(loanDTO -> {
