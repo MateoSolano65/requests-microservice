@@ -1,29 +1,31 @@
 package co.com.pragma.model.exception;
 
+import co.com.pragma.model.response.ResponseCode;
+
 public class BusinessRuleViolationException extends BusinessException {
     
-    private final ErrorType errorType;
+    private final ResponseCode responseCode;
     
     public BusinessRuleViolationException(String message) {
         super(message);
-        ErrorType foundType = ErrorType.findByMessage(message);
-        this.errorType = foundType != null && foundType.getStatusCode() == 400 
-            ? foundType 
-            : ErrorType.LOAND_APLICATION_NOT_ACTIVE;
+        ResponseCode foundCode = ResponseCode.findByMessage(message);
+        this.responseCode = foundCode != null
+            ? foundCode 
+            : ResponseCode.LOAN_APPLICATION_NOT_ACTIVE;
     }
     
-    public BusinessRuleViolationException(ErrorType errorType) {
-        super(errorType.getDefaultMessage());
-        this.errorType = errorType;
+    public BusinessRuleViolationException(ResponseCode responseCode) {
+        super(responseCode.getDefaultMessage());
+        this.responseCode = responseCode;
     }
     
     @Override
     public int statusCode() { 
-        return errorType.getStatusCode();
+        return 400; // Bad Request
     }
     
     @Override
     public String code() { 
-        return errorType.getErrorCode();
+        return responseCode.getCodeValue();
     }
 }

@@ -4,6 +4,7 @@ import co.com.pragma.api.dto.LoanApplicationDTO;
 import co.com.pragma.api.dto.ResponseApiDto;
 import co.com.pragma.api.mapper.LoanApplicationMapper;
 import co.com.pragma.api.validator.ValidatorDTO;
+import co.com.pragma.model.response.ResponseCode;
 import co.com.pragma.usecase.createapplication.CreateLoanApplicationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -52,9 +53,10 @@ public class RequestHandler {
                 })
                 .map(loanApplicationMapper::toLoanApplicationDTO)
                 .flatMap(loanDTO -> {
+                    ResponseCode successCode = ResponseCode.LOAN_APPLICATION_CREATED;
                     ResponseApiDto<LoanApplicationDTO> response = ResponseApiDto.<LoanApplicationDTO>builder()
-                            .status(HttpStatus.CREATED.value())
-                            .message(HttpStatus.CREATED.getReasonPhrase())
+                            .code(successCode.getCodeValue())
+                            .message(successCode.getDefaultMessage())
                             .data(loanDTO)
                             .build();
                     

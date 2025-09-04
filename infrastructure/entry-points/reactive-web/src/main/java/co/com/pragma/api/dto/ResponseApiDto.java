@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.List;
 
 @Data
 @Builder
@@ -14,13 +14,9 @@ import java.util.Map;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseApiDto<T> {
-    private Integer status;
+    private String code;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String message;
     private T data;
-    private ErrorInfoDto error;
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private Map<String, Object> meta;
+    private List<String> error;
 }
-
-

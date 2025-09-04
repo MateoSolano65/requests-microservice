@@ -1,6 +1,7 @@
 package co.com.pragma.api.dto;
 
 import co.com.pragma.api.utils.Regex;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -44,9 +45,11 @@ public class LoanApplicationDTO {
     private String documentNumber;
     
     @Schema(description = "Tipo de préstamo", example = "1")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotNull(message = "El tipo de préstamo es obligatorio")
     private Long loanType;
     
     @Schema(description = "Estado del préstamo", example = "1", hidden = true)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long loanStatus;
 }

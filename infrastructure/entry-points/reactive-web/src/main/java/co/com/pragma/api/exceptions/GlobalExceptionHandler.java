@@ -1,9 +1,9 @@
 package co.com.pragma.api.exceptions;
 
-import co.com.pragma.api.dto.ErrorInfoDto;
 import co.com.pragma.api.dto.ResponseApiDto;
 import co.com.pragma.model.exception.BusinessRuleViolationException;
 import co.com.pragma.model.exception.ResourceConflictException;
+import co.com.pragma.model.response.ResponseCode;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +21,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -87,12 +88,11 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         }
 
         if (throwable instanceof ResponseStatusException rse) {
+            ResponseCode responseCode = ResponseCode.findByHttpStatus(status.value());
             return ResponseApiDto.<Object>builder()
-                .status(status.value())
-                .error(ErrorInfoDto.builder()
-                    .code(status.name())
-                    .detail(Optional.ofNullable(rse.getReason()).orElse(status.getReasonPhrase()))
-                    .build())
+                .code(responseCode.getCodeValue())
+                .message(responseCode.getDefaultMessage())
+                .error(List.of(Optional.ofNullable(rse.getReason()).orElse(status.getReasonPhrase())))
                 .build();
         }
 
@@ -100,12 +100,11 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 ? "An unexpected error occurred"
                 : Optional.ofNullable(throwable.getMessage()).orElse(status.getReasonPhrase());
 
+        ResponseCode responseCode = ResponseCode.findByHttpStatus(status.value());
         return ResponseApiDto.<Object>builder()
-            .status(status.value())
-            .error(ErrorInfoDto.builder()
-                .code(status == HttpStatus.INTERNAL_SERVER_ERROR ? "INTERNAL_ERROR" : status.name())
-                .detail(detail)
-                .build())
+            .code(responseCode.getCodeValue())
+            .message(responseCode.getDefaultMessage())
+            .error(List.of(detail))
             .build();
     }
 
@@ -122,65 +121,48 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         }
 
         return ResponseApiDto.<Object>builder()
-            .status(status.value())
-            .error(ErrorInfoDto.builder().code(code).detail(detail).build())
+            .code(code)
+            .message(detail)
             .build();
     }
 
     private ResponseApiDto<Object> fromWebExchangeBind(Throwable t, HttpStatus status) {
         WebExchangeBindException ex = (WebExchangeBindException) t;
 
-        Map<String, Object> meta = new HashMap<>();
-        List<Map<String, String>> violations = ex.getBindingResult()
+        List<String> errorDetails = ex.getBindingResult()
             .getFieldErrors()
             .stream()
-            .map(fieldError -> {
-                Map<String, String> violation = new HashMap<>();
-                violation.put("field", fieldError.getField());
-                violation.put("message", Optional.ofNullable(fieldError.getDefaultMessage()).orElse("Invalid"));
-                return violation;
-            })
+            .map(fieldError -> fieldError.getField() + ": " + 
+                Optional.ofNullable(fieldError.getDefaultMessage()).orElse("Invalid"))
             .collect(Collectors.toList());
 
-        meta.put("violations", violations);
-
         return ResponseApiDto.<Object>builder()
-            .status(status.value())
-            .error(ErrorInfoDto.builder()
-                .code("VALIDATION_ERROR")
-                .detail("Invalid request body")
-                .build())
-            .meta(meta)
+            .code(ResponseCode.VALIDATION_ERROR.getCodeValue())
+            .message(ResponseCode.VALIDATION_ERROR.getDefaultMessage())
+            .error(errorDetails)
+            .message(null)
             .build();
     }
 
     private ResponseApiDto<Object> fromConstraintViolation(Throwable t, HttpStatus status) {
         ConstraintViolationException ex = (ConstraintViolationException) t;
 
-        Map<String, Object> meta = new HashMap<>();
-        List<Map<String, String>> violations = ex.getConstraintViolations()
+        List<String> errorDetails = ex.getConstraintViolations()
             .stream()
             .map(violation -> {
-                Map<String, String> violationMap = new HashMap<>();
                 String field = violation.getPropertyPath() == null ? "" : violation.getPropertyPath().toString();
                 if (field.contains(".")) {
                     field = field.substring(field.lastIndexOf('.') + 1);
                 }
-                violationMap.put("field", field);
-                violationMap.put("message", violation.getMessage());
-                return violationMap;
+                return field + ": " + violation.getMessage();
             })
             .collect(Collectors.toList());
 
-        meta.put("violations", violations);
-
         return ResponseApiDto.<Object>builder()
-            .status(status.value())
-            .error(ErrorInfoDto.builder()
-                .code("VALIDATION_ERROR")
-                .detail("Invalid request body")
-                .build())
-            .meta(meta)
+            .code(ResponseCode.VALIDATION_ERROR.getCodeValue())
+            .message(ResponseCode.VALIDATION_ERROR.getDefaultMessage())
+            .error(errorDetails)
+            .message(null)
             .build();
     }
 

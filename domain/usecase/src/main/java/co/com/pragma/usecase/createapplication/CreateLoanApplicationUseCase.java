@@ -1,7 +1,7 @@
 package co.com.pragma.usecase.createapplication;
 
 import co.com.pragma.model.exception.BusinessRuleViolationException;
-import co.com.pragma.model.exception.ErrorType;
+import co.com.pragma.model.response.ResponseCode;
 import co.com.pragma.model.loanapplication.LoanApplication;
 import co.com.pragma.model.loanapplication.gateways.ClientValidationGateway;
 import co.com.pragma.model.loanapplication.gateways.LoanApplicationGateway;
@@ -34,7 +34,7 @@ public class CreateLoanApplicationUseCase {
                     if (Boolean.TRUE.equals(exists)) {
                         return Mono.empty();
                     } else {
-                        return Mono.error(new BusinessRuleViolationException(ErrorType.LOAN_TYPE_NOT_FOUND));
+                        return Mono.error(new BusinessRuleViolationException(ResponseCode.LOAN_TYPE_NOT_FOUND));
                     }
                 });
     }

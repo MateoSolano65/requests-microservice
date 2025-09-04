@@ -1,5 +1,7 @@
 package co.com.pragma.api.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +14,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorInfoDto {
-    private String code;
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String detail;
+    private List<String> detail;
 }

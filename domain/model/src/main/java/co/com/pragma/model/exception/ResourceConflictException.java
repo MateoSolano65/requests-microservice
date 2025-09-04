@@ -1,29 +1,31 @@
 package co.com.pragma.model.exception;
 
+import co.com.pragma.model.response.ResponseCode;
+
 public class ResourceConflictException extends BusinessException {
     
-    private final ErrorType errorType;
+    private final ResponseCode responseCode;
     
     public ResourceConflictException(String message) {
         super(message);
-        ErrorType foundType = ErrorType.findByMessage(message);
-        this.errorType = foundType != null && foundType.getStatusCode() == 409 
-            ? foundType 
-            : ErrorType.LOAND_APLICATION_ALREADY_EXISTS;
+        ResponseCode foundCode = ResponseCode.findByMessage(message);
+        this.responseCode = foundCode != null
+            ? foundCode 
+            : ResponseCode.LOAN_APPLICATION_ALREADY_EXISTS;
     }
     
-    public ResourceConflictException(ErrorType errorType) {
-        super(errorType.getDefaultMessage());
-        this.errorType = errorType;
+    public ResourceConflictException(ResponseCode responseCode) {
+        super(responseCode.getDefaultMessage());
+        this.responseCode = responseCode;
     }
     
     @Override
     public int statusCode() { 
-        return errorType.getStatusCode();
+        return 409; // Conflict
     }
     
     @Override
     public String code() { 
-        return errorType.getErrorCode();
+        return responseCode.getCodeValue();
     }
 }
