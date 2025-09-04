@@ -29,6 +29,9 @@ public class LoanApplicationData {
     @Column("document_number")
     private String documentNumber;
     
+    @Column("email")
+    private String email;
+    
     @Column("id_loan_type")
     private Long loanType;
     

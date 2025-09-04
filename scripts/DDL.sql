@@ -23,7 +23,7 @@ CREATE TABLE application (
     amount NUMERIC(15,2) NOT NULL,
     term INT NOT NULL,
     document_number varchar(50) NOT NULL,
-    -- email VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
     id_state INT NOT NULL,
     id_loan_type INT NOT NULL,
     FOREIGN KEY (id_state) REFERENCES states(id_state),

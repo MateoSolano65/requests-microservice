@@ -5,7 +5,7 @@ import co.com.pragma.api.dto.ResponseApiDto;
 import co.com.pragma.api.mapper.LoanApplicationMapper;
 import co.com.pragma.api.validator.ValidatorDTO;
 import co.com.pragma.model.response.ResponseCode;
-import co.com.pragma.usecase.createapplication.CreateLoanApplicationUseCase;
+import co.com.pragma.usecase.loanapplication.LoanApplicationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class RequestHandler {
-    private final CreateLoanApplicationUseCase createLoanApplicationUseCase;
+    private final LoanApplicationUseCase loanApplicationUseCase;
     private final LoanApplicationMapper loanApplicationMapper;
     private final ValidatorDTO validatorDTO;
 
@@ -47,10 +47,7 @@ public class RequestHandler {
         return serverRequest.bodyToMono(LoanApplicationDTO.class)
                 .flatMap(validatorDTO::validate)
                 .flatMap(loanApplicationMapper::toLoanApplicationWithPendingStatus)
-                .flatMap(loanApplication -> {
-                    final String dummyToken = "dummy-token"; 
-                    return createLoanApplicationUseCase.create(dummyToken, loanApplication);
-                })
+                .flatMap(loanApplicationUseCase::create)
                 .map(loanApplicationMapper::toLoanApplicationDTO)
                 .flatMap(loanDTO -> {
                     ResponseCode successCode = ResponseCode.LOAN_APPLICATION_CREATED;

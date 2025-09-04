@@ -20,6 +20,7 @@ public class LoanApplicationMapper {
                         .loanAmount(loanApplicationDTO.getLoanAmount())
                         .termInMonths(loanApplicationDTO.getTermInMonths())
                         .documentNumber(loanApplicationDTO.getDocumentNumber())
+                        .email(loanApplicationDTO.getEmail())
                         .loanType(loanApplicationDTO.getLoanType())
                         .loanStatus(pendingStatusId) 
                         .build());
@@ -31,6 +32,7 @@ public class LoanApplicationMapper {
                 .loanAmount(loanApplication.getLoanAmount())
                 .termInMonths(loanApplication.getTermInMonths())
                 .documentNumber(loanApplication.getDocumentNumber())
+                .email(loanApplication.getEmail())
                 .loanType(loanApplication.getLoanType())
                 .loanStatus(loanApplication.getLoanStatus())
                 .build();

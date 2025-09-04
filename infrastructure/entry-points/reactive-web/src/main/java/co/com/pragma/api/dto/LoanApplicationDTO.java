@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 @Builder(toBuilder = true)
 @Schema(
     description = "Información de la solicitud de préstamo",
-    requiredProperties = { "loanAmount", "termInMonths", "documentNumber", "loanType" }
+    requiredProperties = { "loanAmount", "termInMonths", "documentNumber", "email", "loanType" }
 )
 public class LoanApplicationDTO {
     
@@ -43,6 +43,11 @@ public class LoanApplicationDTO {
     @NotBlank(message = "El número de documento es obligatorio")
     @Pattern(regexp = Regex.DOCUMENT_NUMBER_REGEX, message = "El número de documento debe tener entre 5 y 20 dígitos")
     private String documentNumber;
+    
+    @Schema(description = "Correo electrónico del solicitante", example = "usuario@ejemplo.com")
+    @NotBlank(message = "El correo electrónico es obligatorio")
+    @Pattern(regexp = Regex.EMAIL_REGEX, message = "El formato del correo electrónico no es válido")
+    private String email;
     
     @Schema(description = "Tipo de préstamo", example = "1")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

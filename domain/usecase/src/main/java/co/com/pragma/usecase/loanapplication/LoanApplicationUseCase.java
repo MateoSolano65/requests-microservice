@@ -1,4 +1,4 @@
-package co.com.pragma.usecase.createapplication;
+package co.com.pragma.usecase.loanapplication;
 
 import co.com.pragma.model.exception.BusinessRuleViolationException;
 import co.com.pragma.model.response.ResponseCode;
@@ -10,20 +10,22 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class CreateLoanApplicationUseCase {
+public class LoanApplicationUseCase {
 
     private final LoanApplicationGateway loanApplicationGateway;
     private final ClientValidationGateway clientValidationGateway;
     private final LoanTypeGateway loanTypeGateway;
 
-    public Mono<LoanApplication> create(String token, LoanApplication loanApplication) {
-        return clientValidationGateway.validateToken(token)
+    public Mono<LoanApplication> create(LoanApplication loanApplication) {
+        return clientValidationGateway.validateUserByEmailAndDocument(
+                loanApplication.getEmail(), 
+                loanApplication.getDocumentNumber())
                 .flatMap(isValid -> {
                     if (Boolean.TRUE.equals(isValid)) {
                         return validateLoanTypeExists(loanApplication.getLoanType())
                                 .then(loanApplicationGateway.saveLoan(loanApplication));
                     } else {
-                        return Mono.error(new RuntimeException("Token inválido"));
+                        return Mono.error(new BusinessRuleViolationException(ResponseCode.CLIENT_VALIDATION_ERROR));
                     }
                 });
     }

@@ -17,6 +17,7 @@ public enum ResponseCode {
     // Error codes
     LOAN_APPLICATION_NOT_ACTIVE("BUSINESS-001", "El prestamo no está activo"),
     LOAN_TYPE_NOT_FOUND("BUSINESS-002", "El tipo de préstamo no existe"),
+    CLIENT_VALIDATION_ERROR("BUSINESS-003", "Error en la validación del cliente"),
     LOAN_APPLICATION_ALREADY_EXISTS("CONFLICT-002", "El prestamo ya existe"),
     
     // Common error codes

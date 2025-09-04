@@ -17,6 +17,7 @@ public class LoanApplication {
     BigDecimal loanAmount;
     Long termInMonths;
     String documentNumber;
+    String email;
     Long loanType;
     Long loanStatus;
 }
