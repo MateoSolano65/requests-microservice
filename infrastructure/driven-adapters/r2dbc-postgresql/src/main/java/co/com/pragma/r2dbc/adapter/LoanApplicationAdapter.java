@@ -22,8 +22,7 @@ public class LoanApplicationAdapter extends ReactiveAdapterOperations<LoanApplic
 
     @Override
     public Mono<LoanApplication> saveLoan(LoanApplication loanApplication) {
-        return repository.save(mapper.map(loanApplication, LoanApplicationData.class))
-                .map(data -> mapper.map(data, LoanApplication.class))
+        return save(loanApplication)
                 .as(transactionalOperator::transactional);
     }
 

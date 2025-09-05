@@ -21,8 +21,7 @@ public class LoanTypeAdapter extends ReactiveAdapterOperations<LoanType, LoanTyp
 
     @Override
     public Flux<LoanType> getAllLoanTypes() {
-        return repository.findAll()
-                .map(data -> mapper.map(data, LoanType.class));
+        return findAll();
     }
     
     @Override
