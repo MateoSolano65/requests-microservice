@@ -1,68 +1,60 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.handler.LoanTypeHandler;
-import co.com.pragma.api.handler.RequestHandler;
-import co.com.pragma.api.RequestRouterRest;
-import co.com.pragma.api.mapper.LoanApplicationMapper;
-import co.com.pragma.api.mapper.LoanTypeMapper;
-import co.com.pragma.api.validator.ValidatorDTO;
-import co.com.pragma.usecase.loanapplication.LoanApplicationUseCase;
-import co.com.pragma.usecase.loantype.LoanTypeUseCase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.WebExceptionHandler;
+import org.springframework.web.server.WebHandler;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
+import reactor.core.publisher.Mono;
 
-import static org.mockito.Mockito.mock;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
-@ContextConfiguration(classes = {RequestRouterRest.class, RequestHandler.class, LoanTypeHandler.class, ConfigTest.TestConfig.class})
-@WebFluxTest
-@Import({CorsConfig.class, SecurityHeadersConfig.class})
 class ConfigTest {
 
-    @Configuration
-    static class TestConfig {
-        @Bean
-        public LoanApplicationUseCase loanApplicationUseCase() {
-            return mock(LoanApplicationUseCase.class);
+    private WebTestClient client(String allowedOrigins, boolean includeExceptionHandler) {
+        CorsWebFilter cors = new CorsConfig().corsWebFilter(allowedOrigins);
+        SecurityHeadersConfig security = new SecurityHeadersConfig();
+
+        RouterFunction<ServerResponse> router = route()
+                .GET("/probe", req -> ServerResponse.ok().contentType(MediaType.TEXT_PLAIN).bodyValue("ok"))
+                .GET("/boom", req -> Mono.error(new RuntimeException("boom")))
+                .build();
+
+        var builder = WebHttpHandlerBuilder
+                .webHandler(RouterFunctions.toWebHandler(router))
+                .filter(cors)
+                .filter(security);
+
+        if (includeExceptionHandler) {
+            var exceptionHandler =
+                    new ExceptionConfig().globalExceptionHandler(
+                            new DefaultErrorAttributes(),
+                            new AnnotationConfigApplicationContext(),
+                            ServerCodecConfigurer.create()
+                    );
+            builder.exceptionHandler((WebExceptionHandler) exceptionHandler);
         }
-        
-        @Bean
-        public LoanTypeUseCase loanTypeUseCase() {
-            return mock(LoanTypeUseCase.class);
-        }
-        
-        @Bean
-        public LoanApplicationMapper loanApplicationMapper() {
-            return mock(LoanApplicationMapper.class);
-        }
-        
-        @Bean
-        public LoanTypeMapper loanTypeMapper() {
-            return mock(LoanTypeMapper.class);
-        }
-        
-        @Bean
-        public ValidatorDTO validatorDTO() {
-            return mock(ValidatorDTO.class);
-        }
+
+        return WebTestClient.bindToWebHandler((WebHandler) builder.build()).configureClient().build();
     }
 
-    @Autowired
-    private WebTestClient webTestClient;
-
     @Test
-    void corsConfigurationShouldAllowOrigins() {
-        webTestClient.get()
-                .uri("/api/usecase/path")
+    @DisplayName("Security headers aplicados en 200")
+    void securityHeadersAplicados() {
+        client("http://localhost:3000", false).get()
+                .uri("/probe")
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().valueEquals("Content-Security-Policy",
-                        "default-src 'self'; frame-ancestors 'self'; form-action 'self'")
+                .expectHeader().valueEquals("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'; form-action 'self'")
                 .expectHeader().valueEquals("Strict-Transport-Security", "max-age=31536000;")
                 .expectHeader().valueEquals("X-Content-Type-Options", "nosniff")
                 .expectHeader().valueEquals("Server", "")
@@ -71,4 +63,19 @@ class ConfigTest {
                 .expectHeader().valueEquals("Referrer-Policy", "strict-origin-when-cross-origin");
     }
 
+    @Test
+    @DisplayName("GlobalExceptionHandler aplica headers en 5xx")
+    void exceptionHandlerAplicaHeadersEnErrores() {
+        client("http://localhost:3000", true).get()
+                .uri("/boom")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().valueEquals("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'; form-action 'self'")
+                .expectHeader().valueEquals("Strict-Transport-Security", "max-age=31536000;")
+                .expectHeader().valueEquals("X-Content-Type-Options", "nosniff")
+                .expectHeader().valueEquals("Server", "")
+                .expectHeader().valueEquals("Cache-Control", "no-store")
+                .expectHeader().valueEquals("Pragma", "no-cache")
+                .expectHeader().valueEquals("Referrer-Policy", "strict-origin-when-cross-origin");
+    }
 }
