@@ -17,27 +17,12 @@ public class LoanApplicationUseCase {
     private final LoanTypeGateway loanTypeGateway;
 
     public Mono<LoanApplication> create(LoanApplication loanApplication) {
-        return clientValidationGateway.validateUserByEmailAndDocument(
-                loanApplication.getEmail(), 
-                loanApplication.getDocumentNumber())
-                .flatMap(isValid -> {
-                    if (Boolean.TRUE.equals(isValid)) {
-                        return validateLoanTypeExists(loanApplication.getLoanType())
-                                .then(loanApplicationGateway.saveLoan(loanApplication));
-                    } else {
-                        return Mono.error(new BusinessRuleViolationException(ResponseCode.CLIENT_VALIDATION_ERROR));
-                    }
-                });
+        return Mono.just(loanApplication)
+                .filterWhen(loanApplicationDomain -> clientValidationGateway.validateUserByEmailAndDocument(loanApplicationDomain.getEmail(), loanApplicationDomain.getDocumentNumber()))
+                .switchIfEmpty(Mono.error(new BusinessRuleViolationException(ResponseCode.CLIENT_VALIDATION_ERROR)))
+                .filterWhen(loanApplicationDomain -> loanTypeGateway.existById(loanApplicationDomain.getLoanType()))
+                .switchIfEmpty(Mono.error(new BusinessRuleViolationException(ResponseCode.LOAN_TYPE_NOT_FOUND)))
+                .flatMap(loanApplicationGateway::saveLoan);
     }
-    
-    private Mono<Void> validateLoanTypeExists(Long loanTypeId) {
-        return loanTypeGateway.existById(loanTypeId)
-                .flatMap(exists -> {
-                    if (Boolean.TRUE.equals(exists)) {
-                        return Mono.empty();
-                    } else {
-                        return Mono.error(new BusinessRuleViolationException(ResponseCode.LOAN_TYPE_NOT_FOUND));
-                    }
-                });
-    }
+
 }
