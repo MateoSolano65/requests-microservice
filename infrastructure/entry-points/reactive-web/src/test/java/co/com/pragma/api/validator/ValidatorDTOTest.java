@@ -16,8 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ValidatorDTOTest {
@@ -26,7 +25,10 @@ class ValidatorDTOTest {
     private Validator validator;
 
     @Mock
-    private ConstraintViolation<Object> violation;
+    private ConstraintViolation<Object> violation1;
+
+    @Mock
+    private ConstraintViolation<Object> violation2;
 
     private ValidatorDTO validatorDTO;
 
@@ -36,66 +38,76 @@ class ValidatorDTOTest {
     }
 
     @Test
-    void validate_WithValidObject_ShouldReturnSameObject() {
-        Object testObject = new Object();
-        when(validator.validate(testObject)).thenReturn(Collections.emptySet());
+    void validate_DefersUntilSubscribe() {
+        Object obj = new Object();
+        Mono<Object> mono = validatorDTO.validate(obj);
+        verifyNoInteractions(validator);
+        when(validator.validate(obj)).thenReturn(Collections.emptySet());
+        StepVerifier.create(mono)
+                .expectNext(obj)
+                .verifyComplete();
+        verify(validator).validate(obj);
+    }
 
-        Mono<Object> result = validatorDTO.validate(testObject);
-        StepVerifier.create(result)
-                .expectNext(testObject)
+    @Test
+    void validate_WithValidObject_ReturnsSameObject() {
+        Object obj = new Object();
+        when(validator.validate(obj)).thenReturn(Collections.emptySet());
+
+        StepVerifier.create(validatorDTO.validate(obj))
+                .expectNext(obj)
                 .verifyComplete();
 
-        verify(validator).validate(testObject);
+        verify(validator).validate(obj);
     }
 
     @Test
-    void validate_WithInvalidObject_ShouldReturnValidationError() {
-        Object testObject = new Object();
+    void validate_WithSingleViolation_EmitsConstraintViolationException() {
+        Object obj = new Object();
         Set<ConstraintViolation<Object>> violations = new HashSet<>();
-        violations.add(violation);
-        when(validator.validate(testObject)).thenReturn(violations);
+        violations.add(violation1);
+        when(validator.validate(obj)).thenReturn(violations);
 
-        Mono<Object> result = validatorDTO.validate(testObject);
-        StepVerifier.create(result)
-                .expectErrorMatches(error -> 
-                        error instanceof ConstraintViolationException && 
-                        ((ConstraintViolationException) error).getConstraintViolations().equals(violations))
-                .verify();
-
-        verify(validator).validate(testObject);
-    }
-
-    @Test
-    void validate_WithMultipleViolations_ShouldReturnAllViolations() {
-        Object testObject = new Object();
-        Set<ConstraintViolation<Object>> violations = new HashSet<>();
-        violations.add(violation);
-        violations.add(violation);  // Adding the same mock twice for simplicity
-        when(validator.validate(testObject)).thenReturn(violations);
-
-        Mono<Object> result = validatorDTO.validate(testObject);
-        StepVerifier.create(result)
-                .expectErrorMatches(error -> {
-                    if (!(error instanceof ConstraintViolationException)) {
-                        return false;
-                    }
-                    ConstraintViolationException cve = (ConstraintViolationException) error;
-                    return cve.getConstraintViolations().size() == 2;
+        StepVerifier.create(validatorDTO.validate(obj))
+                .expectErrorSatisfies(err -> {
+                    assert err instanceof ConstraintViolationException;
+                    ConstraintViolationException cve = (ConstraintViolationException) err;
+                    assert cve.getConstraintViolations().size() == 1;
+                    assert cve.getConstraintViolations().contains(violation1);
                 })
                 .verify();
 
-        verify(validator).validate(testObject);
+        verify(validator).validate(obj);
     }
 
     @Test
-    void validate_WhenValidatorThrowsException_ShouldPropagateError() {
-        Object testObject = new Object();
-        RuntimeException expectedException = new RuntimeException("Validation error");
-        when(validator.validate(any())).thenThrow(expectedException);
+    void validate_WithMultipleViolations_PropagatesAllViolations() {
+        Object obj = new Object();
+        Set<ConstraintViolation<Object>> violations = new HashSet<>();
+        violations.add(violation1);
+        violations.add(violation2);
+        when(validator.validate(obj)).thenReturn(violations);
 
-        Mono<Object> result = validatorDTO.validate(testObject);
-        StepVerifier.create(result)
-                .expectErrorMatches(error -> error == expectedException)
+        StepVerifier.create(validatorDTO.validate(obj))
+                .expectErrorSatisfies(err -> {
+                    assert err instanceof ConstraintViolationException;
+                    ConstraintViolationException cve = (ConstraintViolationException) err;
+                    assert cve.getConstraintViolations().size() == 2;
+                    assert cve.getConstraintViolations().containsAll(violations);
+                })
+                .verify();
+
+        verify(validator).validate(obj);
+    }
+
+    @Test
+    void validate_WhenValidatorThrows_PropagatesError() {
+        Object obj = new Object();
+        RuntimeException expected = new RuntimeException("Validation error");
+        when(validator.validate(any())).thenThrow(expected);
+
+        StepVerifier.create(validatorDTO.validate(obj))
+                .expectErrorMatches(e -> e == expected)
                 .verify();
     }
 }
