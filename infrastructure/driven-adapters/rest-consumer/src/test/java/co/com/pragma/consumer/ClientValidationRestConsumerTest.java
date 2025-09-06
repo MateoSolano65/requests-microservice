@@ -55,4 +55,15 @@ class ClientValidationRestConsumerTest {
                 .expectError()
                 .verify();
     }
+
+    @Test
+    void fallbackDevuelveFalse() throws Exception {
+        var m = ClientValidationRestConsumer.class
+                .getDeclaredMethod("validateUserFallback", String.class, String.class, Throwable.class);
+        m.setAccessible(true);
+        var mono = (reactor.core.publisher.Mono<Boolean>)
+                m.invoke(consumer, "a@b.com", "123", new RuntimeException("x"));
+        StepVerifier.create(mono).expectNext(false).verifyComplete();
+    }
+
 }

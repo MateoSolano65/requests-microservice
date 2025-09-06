@@ -36,6 +36,45 @@ sonar {
 
 apply from: './main.gradle'
 
+
+def coverageExcludes = [
+        '**/config/**',
+        '**/*Config.*',
+        '**/*Application.*',
+        '**/dto/**',
+//        '**/mapper/**',
+        '**/utils/**'
+]
+
+subprojects {
+    plugins.withId('jacoco') {
+        tasks.named('jacocoTestReport', JacocoReport).configure { JacocoReport t ->
+            t.reports {
+                xml.required = true
+                html.required = true
+            }
+            t.classDirectories.setFrom(
+                    files(t.classDirectories.files.collect { dir ->
+                        fileTree(dir: dir, exclude: coverageExcludes)
+                    })
+            )
+        }
+    }
+}
+
+tasks.named('jacocoMergedReport', JacocoReport).configure { JacocoReport t ->
+    t.reports {
+        xml.required = true
+        html.required = true
+    }
+    t.classDirectories.setFrom(
+            files(t.classDirectories.files.collect { dir ->
+                fileTree(dir: dir, exclude: coverageExcludes)
+            })
+    )
+}
+
+// tu tarea que dispara el agregado
 tasks.register('jacocoRootReport') {
     dependsOn = ['jacocoMergedReport']
     description = 'Generates an aggregate report from all subprojects'
